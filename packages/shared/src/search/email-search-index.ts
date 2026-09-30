@@ -1,4 +1,4 @@
-import { Client, errors } from '@elastic/elasticsearch';
+import { Client, errors, type estypes } from '@elastic/elasticsearch';
 import type { AppConfig } from '../config.js';
 import { createLogger } from '../logger.js';
 
@@ -107,7 +107,7 @@ export async function ensureEmailSearchIndex(client: Client): Promise<void> {
       mappings: EMAIL_SEARCH_INDEX_MAPPINGS,
     });
   } catch (error) {
-    if (error instanceof errors.ResponseError && error.meta.body.error?.type === 'resource_already_exists_exception') {
+    if (isResourceAlreadyExistsError(error)) {
       return;
     }
     throw error;
@@ -208,6 +208,11 @@ export class EmailSearchIndexService {
       : undefined;
 
     try {
+      const sort: estypes.Sort = [
+        { _score: { order: 'desc' } },
+        { plannedSendAt: 'asc' },
+        { emailId: 'asc' },
+      ];
       const response = await this.client.search<EmailSearchDocument>({
         index: EMAIL_SEARCH_INDEX,
         from: (query.page - 1) * query.limit,
@@ -219,11 +224,7 @@ export class EmailSearchIndexService {
             ...(textQuery ? { must: [textQuery] } : {}),
           },
         },
-        sort: [
-          { _score: 'desc' },
-          { plannedSendAt: 'asc' },
-          { emailId: 'asc' },
-        ],
+        sort,
       });
       const total = typeof response.hits.total === 'number'
         ? response.hits.total
@@ -243,4 +244,22 @@ export class EmailSearchIndexService {
       throw error;
     }
   }
+}
+
+function isResourceAlreadyExistsError(error: unknown): boolean {
+  if (!(error instanceof errors.ResponseError)) {
+    return false;
+  }
+
+  const body = error.meta.body;
+  if (!body || typeof body !== 'object') {
+    return false;
+  }
+
+  const errorBody = (body as { error?: unknown }).error;
+  return Boolean(
+    errorBody &&
+      typeof errorBody === 'object' &&
+      (errorBody as { type?: unknown }).type === 'resource_already_exists_exception',
+  );
 }

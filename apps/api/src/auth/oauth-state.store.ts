@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 import { AuthError } from './auth-error.js';
 
 const STATE_PREFIX = 'oauth-state:';

@@ -1,7 +1,7 @@
 import type { AppConfig } from '@one/shared';
-import nodemailer, { type Transporter } from 'nodemailer';
+import nodemailer, { type SentMessageInfo, type Transporter } from 'nodemailer';
 
-export function createSmtpTransport(config: AppConfig, maxConnections: number): Transporter {
+export function createSmtpTransport(config: AppConfig, maxConnections: number): Transporter<SentMessageInfo> {
   if (!config.SMTP_USER || !config.SMTP_PASSWORD) {
     throw new Error('SMTP_USER and SMTP_PASSWORD must be configured before starting the delivery worker');
   }

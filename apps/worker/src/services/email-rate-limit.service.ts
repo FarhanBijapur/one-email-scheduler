@@ -1,4 +1,4 @@
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 
 const KEY_PREFIX = 'one:email-rate:v1';
 export type SendSlotReservationRequest = {

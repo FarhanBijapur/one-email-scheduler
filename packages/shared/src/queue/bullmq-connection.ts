@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import type { AppConfig } from '../config.js';
 
 export type BullMQConnectionRole = 'producer' | 'consumer';
@@ -11,7 +11,7 @@ export function createBullMQConnection(config: AppConfig, role: BullMQConnection
     maxRetriesPerRequest: isConsumer ? null : 1,
     lazyConnect: true,
     enableOfflineQueue: isConsumer,
-    retryStrategy(times) {
+    retryStrategy(times: number) {
       if (!isConsumer && times > 3) {
         return null;
       }

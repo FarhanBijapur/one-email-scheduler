@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 
 export const EMAIL_SEND_QUEUE_NAME = 'email-send' as const;
 export const EMAIL_SEND_JOB_NAME = 'send-email' as const;

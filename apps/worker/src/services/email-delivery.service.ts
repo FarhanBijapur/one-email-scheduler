@@ -5,7 +5,7 @@ import {
   type EmailSendJobData,
 } from '@one/shared';
 import type { Job } from 'bullmq';
-import type { Transporter } from 'nodemailer';
+import type { SentMessageInfo, Transporter } from 'nodemailer';
 import type { ClaimedEmail } from './email-claim.service.js';
 import { EmailSearchSyncService } from './email-search-sync.service.js';
 
@@ -14,7 +14,7 @@ type WorkerLogger = ReturnType<typeof createLogger>;
 export class EmailDeliveryService {
   constructor(
     private readonly emailRepository: EmailRepository,
-    private readonly transporter: Transporter,
+    private readonly transporter: Transporter<SentMessageInfo>,
     private readonly fallbackSender: string,
     private readonly emailSearchSyncService: EmailSearchSyncService,
     private readonly logger: WorkerLogger,
@@ -31,7 +31,7 @@ export class EmailDeliveryService {
       userId: email.userId,
     };
 
-    let result: Awaited<ReturnType<Transporter['sendMail']>>;
+    let result: SentMessageInfo;
     try {
       result = await this.transporter.sendMail({
         from: formatSender(email.batchSender || email.sender || this.fallbackSender, email.batchSenderName),

@@ -1,5 +1,5 @@
 import { createLogger, SlackClient, SlackRepository } from '@one/shared';
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 
 const NOTIFICATION_KEY_PREFIX = 'one:slack-hourly-cap:v1';
 const HOUR_MILLISECONDS = 60 * 60 * 1_000;

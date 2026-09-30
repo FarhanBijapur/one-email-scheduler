@@ -66,7 +66,11 @@ export class EmailBatchController {
 
   private async getDetail(request: Request, response: Response, next: NextFunction): Promise<void> {
     try {
-      response.json({ data: await this.emailBatchService.findDetail(request.auth!.user.id, request.params.id) });
+      const emailId = request.params.id;
+      if (!emailId) {
+        throw new ApiError(400, 'Invalid request input');
+      }
+      response.json({ data: await this.emailBatchService.findDetail(request.auth!.user.id, emailId) });
     } catch (error) {
       next(error);
     }

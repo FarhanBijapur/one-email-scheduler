@@ -8,11 +8,11 @@ import {
   SlackClient,
   SlackRepository,
 } from '@one/shared';
+import { createApp } from './app.js';
 import { AuthService } from './auth/auth.service.js';
 import { GoogleOAuthProvider } from './auth/google-oauth.provider.js';
 import { OAuthStateStore } from './auth/oauth-state.store.js';
 import { SlackOAuthStateStore } from './auth/slack-oauth-state.store.js';
-import { createApp } from './app.js';
 import { createPrismaClient, pingDatabase } from './lib/db.js';
 import { createElasticsearchClient, pingElasticsearch } from './lib/elasticsearch.js';
 import { createRedisClient, pingRedis } from './lib/redis.js';
@@ -52,9 +52,11 @@ const app = createApp({
   slackOAuthService,
 });
 
-const server = app.listen(config.API_PORT, config.API_HOST, () => {
+const port = process.env.PORT ? Number(process.env.PORT) : config.API_PORT;
+
+const server = app.listen(port, config.API_HOST, () => {
   const integrations = getOptionalIntegrations(config);
-  logger.info(`API listening on http://${config.API_HOST}:${config.API_PORT}`, {
+  logger.info(`API listening on http://${config.API_HOST}:${port}`, {
     integrations,
   });
 });
