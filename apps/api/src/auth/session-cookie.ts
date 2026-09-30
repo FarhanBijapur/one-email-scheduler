@@ -44,7 +44,7 @@ function sessionCookieOptions(config: AppConfig, expires?: Date): CookieOptions 
   return {
     httpOnly: true,
     secure: config.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
     ...(expires ? { expires } : {}),
   };
