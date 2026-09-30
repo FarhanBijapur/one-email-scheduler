@@ -12,6 +12,7 @@ import {
   type EmailSendJobData,
 } from '@one/shared';
 import { Worker } from 'bullmq';
+import { createServer } from 'node:http';
 import { createPrismaClient, pingDatabase } from './lib/db.js';
 import { EmailClaimService } from './services/email-claim.service.js';
 import { EmailDeliveryService } from './services/email-delivery.service.js';
@@ -76,6 +77,21 @@ async function main(): Promise<void> {
     concurrency: config.WORKER_CONCURRENCY,
   });
 
+  const healthPort = process.env.PORT ? Number(process.env.PORT) : 3002;
+  const healthServer = createServer((request, response) => {
+    if (request.method === 'GET' && request.url === '/health') {
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ status: 'ok', service: 'worker' }));
+      return;
+    }
+
+    response.writeHead(404, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ error: 'Not found' }));
+  });
+  healthServer.listen(healthPort, '0.0.0.0', () => {
+    logger.info(`Worker health server listening on http://0.0.0.0:${healthPort}`);
+  });
+
   const postgresOk = await pingDatabase(db);
   logger.info('Infrastructure ping', { postgresOk });
 
@@ -87,6 +103,7 @@ async function main(): Promise<void> {
     shuttingDown = true;
     logger.info(`Received ${signal}, shutting down`);
     await Promise.allSettled([
+      closeHealthServer(healthServer),
       worker.close(),
       db.$disconnect(),
       connection.quit(),
@@ -102,6 +119,12 @@ async function main(): Promise<void> {
   });
   process.on('SIGTERM', () => {
     void shutdown('SIGTERM');
+  });
+}
+
+function closeHealthServer(server: ReturnType<typeof createServer>): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.close((error) => (error ? reject(error) : resolve()));
   });
 }
 
