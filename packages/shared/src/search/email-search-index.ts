@@ -73,7 +73,9 @@ export const EMAIL_SEARCH_INDEX_MAPPINGS = {
 };
 
 export function createElasticsearchClient(config: AppConfig): Client {
-  const auth = config.ELASTICSEARCH_USERNAME
+  const auth = config.ELASTICSEARCH_API_KEY
+    ? { apiKey: config.ELASTICSEARCH_API_KEY }
+    : config.ELASTICSEARCH_USERNAME
     ? {
         username: config.ELASTICSEARCH_USERNAME,
         password: config.ELASTICSEARCH_PASSWORD!,
