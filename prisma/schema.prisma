@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EmailBatchStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum EmailStatus {
+  SCHEDULED
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id               String            @id @default(uuid()) @db.Uuid
+  googleSub        String            @unique @map("google_sub")
+  name             String?
+  email            String            @unique
+  avatarUrl        String?           @map("avatar_url")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sessions         Session[]
+  slackConnections SlackConnection[]
+  emailBatches     EmailBatch[]
+  emails           Email[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model SlackConnection {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  teamId      String   @map("team_id")
+  teamName    String?  @map("team_name")
+  accessToken String   @map("access_token")
+  channelId   String?  @map("channel_id")
+  channelName String?  @map("channel_name")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@map("slack_connections")
+}
+
+model EmailBatch {
+  id                  String           @id @default(uuid()) @db.Uuid
+  userId              String           @map("user_id") @db.Uuid
+  fromAddress         String           @map("from_address")
+  fromName            String?          @map("from_name")
+  subject             String
+  bodyHtml            String           @map("body_html")
+  bodyText            String?          @map("body_text")
+  scheduledAt         DateTime         @map("scheduled_at") @db.Timestamptz(6)
+  delayBetweenEmails  Int              @map("delay_between_emails")
+  hourlyLimit         Int              @map("hourly_limit")
+  recipientCount      Int              @map("recipient_count")
+  status              EmailBatchStatus @default(SCHEDULED)
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emails              Email[]
+
+  @@index([userId, scheduledAt])
+  @@index([userId, status])
+  @@map("email_batches")
+}
+
+model Email {
+  id            String      @id @default(uuid()) @db.Uuid
+  batchId       String      @map("batch_id") @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  recipient     String
+  sender        String
+  subject       String
+  bodyHtml      String      @map("body_html")
+  bodyText      String?     @map("body_text")
+  sequenceIndex Int         @map("sequence_index")
+  status        EmailStatus @default(SCHEDULED)
+  plannedSendAt DateTime    @map("planned_send_at") @db.Timestamptz(6)
+  claimedAt     DateTime?   @map("claimed_at") @db.Timestamptz(6)
+  claimToken    String?     @map("claim_token") @db.Uuid
+  sentAt        DateTime?   @map("sent_at") @db.Timestamptz(6)
+  failedAt      DateTime?   @map("failed_at") @db.Timestamptz(6)
+  failureReason String?     @map("failure_reason")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  batch         EmailBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments   EmailAttachment[]
+
+  @@unique([batchId, recipient])
+  @@unique([batchId, sequenceIndex])
+  @@index([userId, status, plannedSendAt])
+  @@index([userId, recipient])
+  @@map("emails")
+}
+
+model EmailAttachment {
+  id          String   @id @default(uuid()) @db.Uuid
+  emailId     String   @map("email_id") @db.Uuid
+  filename    String
+  contentType String   @map("content_type")
+  sizeBytes   Int      @map("size_bytes")
+  storageKey  String   @map("storage_key")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  email       Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@index([emailId])
+  @@map("email_attachments")
+}
