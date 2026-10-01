@@ -41,9 +41,16 @@ async function main(): Promise<void> {
     await Promise.all([pingRedisConnection(connection), pingRedisConnection(rateLimitConnection)]);
   });
 
-  await checkStartupDependency(logger, config, 'Elasticsearch connection', async () => {
+  let elasticsearchOk = false;
+  try {
     await elasticsearch.ping();
-  });
+    elasticsearchOk = true;
+  } catch (error) {
+    logger.warn('Elasticsearch is unavailable — search indexing will be best-effort', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+  logger.info('Startup dependency status', { elasticsearchOk });
 
   const emailRepository = new EmailRepository(db);
   const emailSearchSyncService = new EmailSearchSyncService(
@@ -86,11 +93,27 @@ async function main(): Promise<void> {
       (job, token) => emailSendJobProcessor.process(job, token),
       { connection, concurrency: config.WORKER_CONCURRENCY },
     );
+    emailWorker.on('ready', () => {
+      logger.info('BullMQ worker is ready and listening for jobs');
+    });
     return emailWorker;
   });
 
   worker.on('error', (error) => {
     logger.error('BullMQ worker error', error instanceof Error ? error.message : error);
+  });
+  worker.on('failed', (job, error) => {
+    logger.error('Job failed', {
+      jobId: job?.id ?? null,
+      jobName: job?.name ?? null,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
+  worker.on('completed', (job) => {
+    logger.info('Job completed', {
+      jobId: job?.id ?? null,
+      jobName: job?.name ?? null,
+    });
   });
 
   logger.info('Email claim worker started', {
