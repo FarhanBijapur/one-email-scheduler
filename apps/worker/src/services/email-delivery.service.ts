@@ -132,9 +132,10 @@ function smtpFailureReason(error: unknown): string {
 function smtpErrorSummary(error: unknown): string {
   if (error instanceof Error) {
     const candidate = error as Error & { code?: unknown; responseCode?: unknown };
-    const details = [candidate.code, candidate.responseCode].filter((value) => value !== undefined).join(' ');
-    return (details || candidate.name || 'SMTP error').slice(0, 500);
+    const prefix = [candidate.code, candidate.responseCode].filter((value) => value !== undefined).join(' ');
+    const details = prefix ? `${prefix}: ${candidate.message}` : candidate.message;
+    return (details || candidate.name || 'Delivery error').slice(0, 500);
   }
 
-  return 'Unknown SMTP error';
+  return 'Unknown delivery error';
 }

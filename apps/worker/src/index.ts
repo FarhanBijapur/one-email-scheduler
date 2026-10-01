@@ -61,9 +61,13 @@ async function main(): Promise<void> {
   const transporter = createEmailTransport(config, config.WORKER_CONCURRENCY);
   try {
     await transporter.verify();
-    logger.info('SMTP transport verified');
+    if (config.RESEND_API_KEY) {
+      logger.info('Resend email transport configured');
+    } else {
+      logger.info('SMTP transport verified');
+    }
   } catch (error) {
-    logger.warn('SMTP verification failed — delivery will be attempted when jobs are processed', {
+    logger.warn('Email transport verification failed — delivery will be attempted when jobs are processed', {
       message: error instanceof Error ? error.message : String(error),
       code: isErrorWithCode(error) ? error.code : undefined,
     });

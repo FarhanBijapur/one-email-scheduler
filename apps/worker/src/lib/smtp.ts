@@ -4,7 +4,7 @@ import { createResendTransport } from './resend-transport.js';
 
 export function createEmailTransport(config: AppConfig, maxConnections: number): Transporter<SentMessageInfo> {
   if (config.RESEND_API_KEY) {
-    return createResendTransport(config.RESEND_API_KEY);
+    return createResendTransport(config.RESEND_API_KEY, config.RESEND_FROM);
   }
   return createSmtpTransport(config, maxConnections);
 }

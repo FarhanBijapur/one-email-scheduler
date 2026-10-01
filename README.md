@@ -762,6 +762,9 @@ The local environment provides the complete end-to-end demonstration environment
 
 Production Render uses the Resend HTTPS API to avoid the SMTP connectivity limitation encountered with the Render Free-tier worker. The worker automatically uses Resend when `RESEND_API_KEY` is present and falls back to SMTP otherwise.
 
+### Sender Architecture
+The authenticated user's Google email is always preserved as the logical sender (User Identity) and is displayed in the UI. When the Resend transport is active, the physical provider `from` address is overridden by `RESEND_FROM` (e.g., the sandbox sender `onboarding@resend.dev`) to comply with provider authorization rules. The recipient remains the email address entered by the user.
+
 The submitted production deployment is provided as an additional live environment. Because the worker is hosted on a constrained deployment configuration, some background-worker behavior may differ from the local environment.
 
 The source code, architecture and local end-to-end implementation remain available in the repository for evaluation.

@@ -3,7 +3,7 @@ import type { SentMessageInfo, Transporter } from 'nodemailer';
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
-export function createResendTransport(apiKey: string): Transporter<SentMessageInfo> {
+export function createResendTransport(apiKey: string, resendFrom?: string): Transporter<SentMessageInfo> {
   const transport = {
     name: 'resend',
     version: '1.0.0',
@@ -19,7 +19,8 @@ export function createResendTransport(apiKey: string): Transporter<SentMessageIn
         text?: string;
       };
 
-      const fromAddress = typeof from === 'string' ? from : from?.address ?? '';
+      const fallbackFrom = typeof from === 'string' ? from : from?.address ?? '';
+      const fromAddress = resendFrom || fallbackFrom;
       const recipients = normalizeRecipients(to);
 
       const body = JSON.stringify({

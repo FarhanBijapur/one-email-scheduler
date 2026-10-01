@@ -408,7 +408,9 @@ Figma screenshots: `docs/figma/*.png`.
 1. PostgreSQL over MySQL.
 2. React SPA + Express, not Next.js.
 3. UTC hourly windows.
-4. Sender addresses: Resend uses verified domains or sandbox sender. SMTP (Ethereal) ignores arbitrary From.
+4. Sender architecture:
+   - **Logical Sender (UI)**: The authenticated user's Google email is always preserved as the logical sender and user identity.
+   - **Provider Sender (Transport)**: When Resend is used, the actual provider `from` address is `RESEND_FROM` (e.g., the sandbox sender `onboarding@resend.dev` or a verified domain). SMTP (Ethereal) ignores arbitrary From addresses.
 5. Email/password on the Figma login is not implemented.
 6. Star is persisted; delete may cancel scheduled jobs if implemented as a stretch aligned with detail-page trash icon.
 7. 1000-job demo via a documented seed/script or compose of a large CSV, not 1000 live SMTP in the 5-minute video.
