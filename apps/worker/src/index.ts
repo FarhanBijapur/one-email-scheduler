@@ -58,12 +58,16 @@ async function main(): Promise<void> {
     new EmailSearchIndexService(elasticsearch),
     logger,
   );
-  const transporter = await checkStartupDependency(logger, config, 'SMTP verification', async () => {
-    const transport = createSmtpTransport(config, config.WORKER_CONCURRENCY);
-    await transport.verify();
-    return transport;
-  });
-  logger.info('SMTP transport verified');
+  const transporter = createSmtpTransport(config, config.WORKER_CONCURRENCY);
+  try {
+    await transporter.verify();
+    logger.info('SMTP transport verified');
+  } catch (error) {
+    logger.warn('SMTP verification failed — delivery will be attempted when jobs are processed', {
+      message: error instanceof Error ? error.message : String(error),
+      code: isErrorWithCode(error) ? error.code : undefined,
+    });
+  }
 
   const emailClaimService = new EmailClaimService(emailRepository, emailSearchSyncService, logger);
   const emailDeliveryService = new EmailDeliveryService(
