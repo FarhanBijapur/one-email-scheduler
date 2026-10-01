@@ -25,7 +25,7 @@ BullMQ delayed jobs
 Worker process (TypeScript, configurable concurrency)
         |-- claim email row in PostgreSQL
         |-- Redis delay + hourly window
-        |-- Ethereal SMTP
+        |-- Email Delivery (Resend HTTPS or Ethereal SMTP)
         |-- update PostgreSQL
         |-- index Elasticsearch
         |-- Slack notify on hourly cap (non-fatal)
@@ -310,7 +310,7 @@ Worker algorithm (must follow):
 4. If `sending` and claim stale → only a defined recovery path (re-claim or fail), never blind send.
 5. Claim `scheduled` → `sending`.
 6. Apply Redis delay + hourly checks; if blocked, revert to `scheduled` with new `planned_send_at`, delay job, return.
-7. SMTP.
+7. Send via Resend HTTPS (production) or SMTP (local fallback).
 8. Persist `sent`, index ES, complete job.
 
 ---
@@ -408,7 +408,7 @@ Figma screenshots: `docs/figma/*.png`.
 1. PostgreSQL over MySQL.
 2. React SPA + Express, not Next.js.
 3. UTC hourly windows.
-4. Sender addresses for Ethereal: user’s Google email as From display, SMTP always Ethereal account (Ethereal ignores arbitrary From; document this).
+4. Sender addresses: Resend uses verified domains or sandbox sender. SMTP (Ethereal) ignores arbitrary From.
 5. Email/password on the Figma login is not implemented.
 6. Star is persisted; delete may cancel scheduled jobs if implemented as a stretch aligned with detail-page trash icon.
 7. 1000-job demo via a documented seed/script or compose of a large CSV, not 1000 live SMTP in the 5-minute video.

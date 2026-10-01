@@ -69,10 +69,10 @@ Definition of done for a task: code + env documented + no fake stand-ins for tha
 
 ---
 
-## Phase 6 — Idempotent worker + Ethereal
+## Phase 6 — Idempotent worker + Email Delivery
 
 - [x] T6.1 Conditional DB claim before send
-- [x] T6.2 Nodemailer Ethereal from env
+- [x] T6.2 Resend HTTPS / Nodemailer Ethereal from env
 - [x] T6.3 Persist sent/fail state
 - [x] T6.4 Skip SMTP if already sent
 - [ ] T6.5 Unit/integration tests for claim + duplicate job
@@ -136,7 +136,7 @@ Definition of done for a task: code + env documented + no fake stand-ins for tha
 - [ ] T12.1 5-minute script from REQUIREMENTS §20
 - [ ] T12.2 Verify delayed job in Bull Board
 - [ ] T12.3 Restart persistence
-- [ ] T12.4 Ethereal delivery + Sent view
+- [ ] T12.4 Delivery (Resend or Ethereal) + Sent view
 - [ ] T12.5 Optional: hourly=3, Slack connected
 
 ---

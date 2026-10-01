@@ -22,7 +22,7 @@ The system uses PostgreSQL as the source of truth, Redis/BullMQ for durable job 
 - Per-user hourly sending limit
 - Automatic rescheduling when the hourly limit is reached
 - Redis-backed distributed rate limiting
-- Ethereal SMTP email delivery
+- Resend HTTPS and Ethereal SMTP email delivery
 - Elasticsearch email indexing and search
 - Bull Board queue monitoring
 - Slack OAuth integration
@@ -68,9 +68,16 @@ The system uses PostgreSQL as the source of truth, Redis/BullMQ for durable job 
                          ┌─────────┴─────────┐
                          ▼                   ▼
                   ┌─────────────┐     ┌─────────────┐
-                  │ SMTP /      │     │ Slack API   │
-                  │ Ethereal    │     │             │
-                  └─────────────┘     └─────────────┘
+                  │ Email Trans │     │ Slack API   │
+                  │ Factory     │     │             │
+                  └──────┬──────┘     └─────────────┘
+                         │
+               ┌─────────┴─────────┐
+               ▼                   ▼
+        ┌─────────────┐     ┌─────────────┐
+        │ Resend      │     │ SMTP /      │
+        │ HTTPS       │     │ Ethereal    │
+        └─────────────┘     └─────────────┘
 ````
 
 ### Monorepo Structure
@@ -134,7 +141,7 @@ Responsible for:
 * Minimum inter-email delay
 * Hourly sending limits
 * Email rescheduling
-* SMTP delivery
+* Email delivery (Resend HTTPS / SMTP fallback)
 * Retry handling
 * Slack notifications
 
@@ -252,12 +259,12 @@ No cron scheduler is required.
 
 ## Delivery Semantics
 
-SMTP delivery cannot provide mathematical exactly-once semantics across every possible process crash.
+Email delivery (via SMTP or HTTPS APIs like Resend) cannot provide mathematical exactly-once semantics across every possible process crash.
 
 For example:
 
 ```text
-SMTP accepts email
+Provider accepts email
         ↓
 Process crashes
         ↓
@@ -268,7 +275,7 @@ After recovery, a retry can potentially cause another delivery.
 
 Therefore the system provides **practical at-least-once delivery semantics** with guarded database state transitions and deterministic jobs.
 
-This limitation is explicitly documented rather than claiming impossible exactly-once SMTP delivery.
+This limitation is explicitly documented rather than claiming impossible exactly-once delivery.
 
 ---
 
@@ -284,7 +291,8 @@ Install:
 You also need:
 
 * Google OAuth credentials
-* Ethereal SMTP credentials
+* Ethereal SMTP credentials (for local dev)
+* Resend API Key (for production, optional locally)
 * Slack OAuth credentials for Slack notification testing
 
 ---
@@ -675,7 +683,7 @@ Sign in using Google OAuth.
 
 ### 4. Send an email
 
-Create an email using Ethereal SMTP.
+Create an email using Ethereal SMTP (or Resend).
 
 Verify that the email transitions through:
 
@@ -750,7 +758,9 @@ The repository contains the deployment configuration and production environment 
 
 # Production Deployment Note
 
-The local environment provides the complete end-to-end demonstration environment with Docker-backed PostgreSQL, Redis and Elasticsearch.
+The local environment provides the complete end-to-end demonstration environment with Docker-backed PostgreSQL, Redis and Elasticsearch. Local development can continue using Ethereal SMTP.
+
+Production Render uses the Resend HTTPS API to avoid the SMTP connectivity limitation encountered with the Render Free-tier worker. The worker automatically uses Resend when `RESEND_API_KEY` is present and falls back to SMTP otherwise.
 
 The submitted production deployment is provided as an additional live environment. Because the worker is hosted on a constrained deployment configuration, some background-worker behavior may differ from the local environment.
 
@@ -784,7 +794,7 @@ The current implementation has the following documented limitations:
 | Dedicated worker                 | Complete        |
 | Redis rate limiting              | Complete        |
 | Hourly rescheduling              | Complete        |
-| SMTP/Ethereal delivery           | Complete        |
+| Resend/SMTP delivery            | Complete        |
 | Elasticsearch search             | Complete        |
 | Bull Board                       | Complete        |
 | Slack OAuth                      | Complete        |

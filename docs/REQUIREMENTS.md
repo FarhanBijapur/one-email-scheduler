@@ -39,7 +39,8 @@ Scheduling must use **BullMQ + Redis**. Cron is forbidden.
 - [ ] BullMQ
 - [ ] Redis (persistent)
 - [ ] PostgreSQL (chosen relational store; MySQL is allowed by the assignment)
-- [ ] Ethereal Email / SMTP (real sends)
+- [ ] Ethereal Email / SMTP (real sends; assignment/local implementation)
+- [ ] Resend HTTPS API (production deployment transport)
 - [ ] Elasticsearch
 - [ ] Bull Board (or equivalent official BullMQ dashboard)
 
@@ -93,7 +94,7 @@ When scheduling a batch, the backend must:
 4. [ ] Enqueue persistent BullMQ jobs
 5. [ ] Use **delayed** BullMQ jobs for future execute-at times
 6. [ ] Run a separate worker process to consume jobs
-7. [ ] Send mail via Ethereal SMTP (not a stub)
+7. [ ] Send mail via Ethereal SMTP locally or Resend HTTPS in production (not a stub)
 8. [ ] Persist status transitions in PostgreSQL
 9. [ ] Index sent (and status-changed) emails in Elasticsearch for search
 
@@ -349,7 +350,7 @@ README must cover (and must not claim unimplemented features):
 
 - [ ] Overview, architecture, folder structure
 - [ ] Setup, env vars, Docker, DB, Redis, Elasticsearch
-- [ ] Ethereal, Google OAuth, Slack OAuth
+- [ ] Resend, Ethereal, Google OAuth, Slack OAuth
 - [ ] Running API, frontend, worker, Bull Board
 - [ ] API endpoints
 - [ ] Scheduling, restart persistence, rate limiting, concurrency, idempotency
@@ -365,7 +366,7 @@ README must cover (and must not claim unimplemented features):
 - [ ] Scheduled list
 - [ ] BullMQ delayed job
 - [ ] Stop worker/server, restart, job survives
-- [ ] Email sends (Ethereal)
+- [ ] Email sends (Resend/Ethereal)
 - [ ] Sent list
 - [ ] Rate limiting if practical
 - [ ] Slack notification if practical

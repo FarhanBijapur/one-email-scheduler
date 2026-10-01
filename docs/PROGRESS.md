@@ -10,6 +10,8 @@ Last updated: 2026-09-30
 
 ## Completed
 
+- T10.10 Added Resend HTTPS transport to bypass Render Free SMTP port 587 blocking. Worker factory uses Resend if RESEND_API_KEY is present, maintaining Ethereal SMTP as the local fallback.
+
 - Monorepo and npm workspace configuration
 - Shared TypeScript, ESLint, and Prettier configuration
 - API scaffold with the `/health` endpoint and infrastructure client helpers
