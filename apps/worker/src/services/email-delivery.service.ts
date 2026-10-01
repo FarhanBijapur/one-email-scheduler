@@ -51,7 +51,7 @@ export class EmailDeliveryService {
     }
     await this.emailSearchSyncService.indexPersistedEmail(email.id);
 
-    this.logger.info('Email delivered through SMTP', {
+    this.logger.info('Email delivered successfully', {
       ...context,
       messageId: result.messageId,
     });

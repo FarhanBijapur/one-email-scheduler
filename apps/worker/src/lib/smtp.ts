@@ -1,5 +1,13 @@
 import type { AppConfig } from '@one/shared';
 import nodemailer, { type SentMessageInfo, type Transporter } from 'nodemailer';
+import { createResendTransport } from './resend-transport.js';
+
+export function createEmailTransport(config: AppConfig, maxConnections: number): Transporter<SentMessageInfo> {
+  if (config.RESEND_API_KEY) {
+    return createResendTransport(config.RESEND_API_KEY);
+  }
+  return createSmtpTransport(config, maxConnections);
+}
 
 export function createSmtpTransport(config: AppConfig, maxConnections: number): Transporter<SentMessageInfo> {
   if (!config.SMTP_USER || !config.SMTP_PASSWORD) {

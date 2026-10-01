@@ -19,7 +19,7 @@ import { EmailDeliveryService } from './services/email-delivery.service.js';
 import { EmailRateLimitService } from './services/email-rate-limit.service.js';
 import { EmailSendJobProcessor } from './services/email-send-job-processor.js';
 import { EmailSearchSyncService } from './services/email-search-sync.service.js';
-import { createSmtpTransport } from './lib/smtp.js';
+import { createEmailTransport } from './lib/smtp.js';
 import { SlackHourlyLimitNotificationService } from './services/slack-hourly-limit-notification.service.js';
 
 async function main(): Promise<void> {
@@ -58,7 +58,7 @@ async function main(): Promise<void> {
     new EmailSearchIndexService(elasticsearch),
     logger,
   );
-  const transporter = createSmtpTransport(config, config.WORKER_CONCURRENCY);
+  const transporter = createEmailTransport(config, config.WORKER_CONCURRENCY);
   try {
     await transporter.verify();
     logger.info('SMTP transport verified');
@@ -73,7 +73,7 @@ async function main(): Promise<void> {
   const emailDeliveryService = new EmailDeliveryService(
     emailRepository,
     transporter,
-    config.SMTP_FROM ?? config.SMTP_USER!,
+    config.RESEND_FROM ?? config.SMTP_FROM ?? config.SMTP_USER!,
     emailSearchSyncService,
     logger,
   );

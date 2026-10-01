@@ -55,6 +55,8 @@ const envSchema = z.object({
   SMTP_PASSWORD: optionalString,
   SMTP_SECURE: booleanFromEnvironment,
   SMTP_FROM: optionalString,
+  RESEND_API_KEY: optionalString,
+  RESEND_FROM: optionalString,
 
   WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5),
 });
