@@ -1,6 +1,6 @@
 # ONE — Email Job Scheduler
 
-ONE is a production-oriented full-stack email scheduling platform built for the ReachInbox / Outbox Labs Software Development Engineer Internship assessment.
+ONE is a production-oriented full-stack email scheduling platform.
 
 The application allows authenticated users to create email batches, schedule delivery, enforce per-user rate limits, persist jobs across application restarts, search email records, and monitor BullMQ jobs through Bull Board.
 
@@ -816,8 +816,3 @@ GitHub:
 
 ---
 
-# Assessment
-
-Built for the **ReachInbox / Outbox Labs Software Development Engineer Internship assessment**.
-
-The implementation focuses on persistent scheduling, worker-based delivery, concurrency safety, distributed rate limiting, OAuth authentication, search, observability and a production-oriented architecture.
